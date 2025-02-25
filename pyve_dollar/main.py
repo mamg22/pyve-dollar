@@ -33,8 +33,13 @@ def show_plot():
 def interactive():
     import datetime
 
-    date = input("Date: ")
-    val = float(input("$ "))
+    while True:
+        date_str = input("Date: ")
+        try:
+            date = datetime.datetime.fromisoformat(date_str).astimezone(VE_TZ)
+            break
+        except ValueError:
+            print("Invalid date")
 
     db = get_database()
 
@@ -49,16 +54,23 @@ def interactive():
         FROM RecencyRates
         WHERE rn = 1
         """,
-        (datetime.datetime.fromisoformat(date).astimezone(VE_TZ).isoformat(),),
+        (date.isoformat(),),
     ).fetchall()
 
-    for time, source, rate in rates_now:
-        rate /= 10000
-        time = datetime.datetime.fromisoformat(time)
+    while True:
+        try:
+            val = float(input("$ "))
+        except ValueError:
+            print("Invalid number")
+            continue
 
-        print(
-            f"Value for ${val} based on {source} at {time} ({rate}):\tBs. {rate * val:.02f}"
-        )
+        for time, source, rate in rates_now:
+            rate /= 10000
+            time = datetime.datetime.fromisoformat(time)
+
+            print(
+                f"Value for ${val} based on {source} at {time} ({rate}):\tBs. {rate * val:.02f}"
+            )
 
 
 def main():
