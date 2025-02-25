@@ -1,6 +1,8 @@
 import argparse
 import sqlite3
-import sys
+
+from pyve_dollar.common import VE_TZ
+from pyve_dollar.database import get_database
 
 from . import bcv
 from . import paralelo
@@ -28,6 +30,37 @@ def show_plot():
     plt.show()
 
 
+def interactive():
+    import datetime
+
+    date = input("Date: ")
+    val = float(input("$ "))
+
+    db = get_database()
+
+    rates_now = db.execute(
+        """
+        WITH RecencyRates AS (
+            SELECT time, source, rate, row_number() OVER (PARTITION BY source ORDER BY time DESC) AS rn
+            FROM rates
+            WHERE datetime(time) <= datetime(?)
+        )
+        SELECT time, source, rate
+        FROM RecencyRates
+        WHERE rn = 1
+        """,
+        (datetime.datetime.fromisoformat(date).astimezone(VE_TZ).isoformat(),),
+    ).fetchall()
+
+    for time, source, rate in rates_now:
+        rate /= 10000
+        time = datetime.datetime.fromisoformat(time)
+
+        print(
+            f"Value for ${val} based on {source} at {time} ({rate}):\tBs. {rate * val:.02f}"
+        )
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -46,8 +79,7 @@ def main():
     elif args.show_plot:
         show_plot()
     else:
-        parser.print_help()
-        sys.exit(1)
+        interactive()
 
 
 if __name__ == "__main__":
