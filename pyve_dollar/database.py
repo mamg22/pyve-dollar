@@ -1,6 +1,10 @@
 import datetime
 import sqlite3
 
+from .common import PLATFORM_DIRS
+
+DB_PATH = PLATFORM_DIRS.user_data_path / "rates.db"
+
 
 def adapt_datetime(val: datetime.datetime) -> str:
     return val.isoformat()
@@ -24,8 +28,8 @@ CREATE TABLE IF NOT EXISTS rates (
 """
 
 
-def get_database() -> sqlite3.Connection:
-    db = sqlite3.connect("rates.db")
+def get_database(**connect_options) -> sqlite3.Connection:
+    db = sqlite3.connect(DB_PATH, **connect_options)
 
     db.executescript(SCHEMA)
 

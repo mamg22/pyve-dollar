@@ -11,7 +11,7 @@ from . import paralelo
 def show_plot():
     import matplotlib.pyplot as plt
 
-    db = sqlite3.connect("rates.db", detect_types=sqlite3.PARSE_DECLTYPES)
+    db = get_database(detect_types=sqlite3.PARSE_DECLTYPES)
     rates_BCV = db.execute(
         "SELECT time, cast(rate as float) / 10000 FROM rates WHERE source = 'BCV' ORDER BY datetime(time)"
     ).fetchall()

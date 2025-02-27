@@ -7,11 +7,11 @@ import requests
 import xlrd
 
 from .database import get_database
-from .common import REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ
+from .common import REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ, PLATFORM_DIRS
 
 STATS_URL = "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
 
-STATS_CACHE = platformdirs.user_cache_path("pyve_dollar", ensure_exists=True) / "stats"
+STATS_CACHE = PLATFORM_DIRS.user_cache_path / "stats"
 
 
 def fetch_stats_urls() -> list[str]:
