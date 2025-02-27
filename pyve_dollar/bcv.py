@@ -1,8 +1,8 @@
 import datetime
-import pathlib
 from urllib.parse import urljoin
 
 from lxml import html
+import platformdirs
 import requests
 import xlrd
 
@@ -10,6 +10,8 @@ from .database import get_database
 from .common import REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ
 
 STATS_URL = "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
+
+STATS_CACHE = platformdirs.user_cache_path("pyve_dollar", ensure_exists=True) / "stats"
 
 
 def fetch_stats_urls() -> list[str]:
@@ -42,12 +44,7 @@ def fetch_stats_urls() -> list[str]:
     return download_links
 
 
-STATS_CACHE = pathlib.Path("cache")
-
-
 def download_stats(urls: list[str]):
-    STATS_CACHE.mkdir(exist_ok=True)
-
     for idx, url in enumerate(urls):
         filename = url.split("/")[-1]
         cache_path = STATS_CACHE / filename
@@ -69,6 +66,7 @@ def download_stats(urls: list[str]):
 
 
 def build_database():
+    STATS_CACHE.mkdir(exist_ok=True)
     try:
         urls = fetch_stats_urls()
         download_stats(urls)
