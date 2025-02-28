@@ -5,7 +5,7 @@ import os
 
 from telethon import TelegramClient
 
-from .common import REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ
+from .common import eprint, REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ
 from .database import get_database
 
 DATA_REGEX = re.compile(
@@ -73,10 +73,10 @@ async def fetch():
         api_id = int(os.environ["PYVE_DOLLAR_TG_ID"])
         api_hash = os.environ["PYVE_DOLLAR_TG_HASH"]
     except KeyError as err:
-        print(f"Required credential `{err.args[0]}` not provided")
+        eprint(f"Required credential `{err.args[0]}` not provided")
         raise
     except ValueError:
-        print("Telegram api ID is not a valid number")
+        eprint("Telegram api ID is not a valid number")
         raise
 
     client = TelegramClient("paralelo", api_id, api_hash)
@@ -99,7 +99,7 @@ async def fetch():
         if data is not None:
             rates.append(data)
         else:
-            print(f"Unable to parse message `{msg[:100].replace("\n", "")}`")
+            eprint(f"Unable to parse message `{msg[:100].replace("\n", "")}`")
 
     return rates
 

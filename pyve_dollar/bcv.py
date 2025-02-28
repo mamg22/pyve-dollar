@@ -7,7 +7,13 @@ import requests
 import xlrd
 
 from .database import get_database
-from .common import REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ, PLATFORM_DIRS
+from .common import (
+    eprint,
+    REDENOMINATION_DAY,
+    REDENOMINATION_FACTOR,
+    VE_TZ,
+    PLATFORM_DIRS,
+)
 
 STATS_URL = "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
 
@@ -55,11 +61,11 @@ def download_stats(urls: list[str]):
             continue
 
         try:
-            print(f"Fetching {filename} from {url}")
+            eprint(f"Fetching {filename} from {url}")
             response = requests.get(url, verify=False)
             response.raise_for_status()
         except requests.RequestException as err:
-            print(f"Error fetching {url}:\n{err}")
+            eprint(f"Error fetching {url}:\n{err}")
             continue
 
         cache_path.write_bytes(response.content)
@@ -71,7 +77,7 @@ def build_database():
         urls = fetch_stats_urls()
         download_stats(urls)
     except requests.ConnectionError:
-        print("Failed to fetch current stats index, data might be outdated")
+        eprint("Failed to fetch current stats index, data might be outdated")
 
     rates: list[tuple[datetime.date, int]] = []
     for file in STATS_CACHE.iterdir():
@@ -79,7 +85,7 @@ def build_database():
             book = xlrd.open_workbook(file, on_demand=True)
 
         except xlrd.XLRDError:
-            print(f"Could not open file {file}")
+            eprint(f"Could not open file {file}")
             continue
 
         for sheet in book:
