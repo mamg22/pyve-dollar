@@ -1,11 +1,15 @@
 import argparse
 import sqlite3
 
-from pyve_dollar.common import eprint, VE_TZ
-from pyve_dollar.database import get_database
+from dotenv import load_dotenv
 
+from pyve_dollar.common import VE_TZ
+from pyve_dollar.database import get_database
 from . import bcv
 from . import paralelo
+
+
+load_dotenv()
 
 
 def show_plot():
