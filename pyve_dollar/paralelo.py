@@ -5,8 +5,16 @@ import os
 
 from telethon import TelegramClient
 
-from .common import eprint, REDENOMINATION_DAY, REDENOMINATION_FACTOR, VE_TZ
+from .common import (
+    eprint,
+    PLATFORM_DIRS,
+    REDENOMINATION_DAY,
+    REDENOMINATION_FACTOR,
+    VE_TZ,
+)
 from .database import get_database
+
+SESSION_FILE = PLATFORM_DIRS.user_data_path / "paralelo.session"
 
 DATA_REGEX = re.compile(
     r"""(\d{1,2}/\d{1,2}/\d{2,4})       # Match date in [d]d/[m]m/[yy]yy format
@@ -79,7 +87,7 @@ async def fetch():
         eprint("Telegram api ID is not a valid number")
         raise
 
-    client = TelegramClient("paralelo", api_id, api_hash)
+    client = TelegramClient(SESSION_FILE, api_id, api_hash)
 
     async with client:
         ichannel = await client.get_input_entity("enparalelovzlatelegram")
