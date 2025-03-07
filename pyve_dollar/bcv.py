@@ -2,7 +2,6 @@ import datetime
 from urllib.parse import urljoin
 
 from lxml import html
-import platformdirs
 import requests
 import xlrd
 
@@ -15,8 +14,9 @@ from .common import (
     PLATFORM_DIRS,
 )
 
-STATS_URL = "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
+SOURCE_NAME = "BCV"
 
+STATS_URL = "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
 STATS_CACHE = PLATFORM_DIRS.user_cache_path / "stats"
 
 
@@ -107,7 +107,7 @@ def build_database():
     db = get_database()
 
     db.executemany(
-        "INSERT INTO rates(time, source, rate) VALUES (?, 'BCV', ?) ON CONFLICT (time, source) DO NOTHING",
+        f"INSERT INTO rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
         rates,
     )
     db.commit()

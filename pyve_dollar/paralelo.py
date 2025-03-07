@@ -14,6 +14,8 @@ from .common import (
 )
 from .database import get_database
 
+SOURCE_NAME = "paralelo"
+
 SESSION_FILE = PLATFORM_DIRS.user_data_path / "paralelo.session"
 
 DATA_REGEX = re.compile(
@@ -117,7 +119,7 @@ def build_database():
     db = get_database()
 
     db.executemany(
-        "INSERT INTO rates(time, source, rate) VALUES (?, 'paralelo', ?) ON CONFLICT (time, source) DO NOTHING",
+        f"INSERT INTO rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
         rates,
     )
     db.commit()
