@@ -78,7 +78,7 @@ def parse_message(message: str) -> tuple[datetime.datetime, int] | None:
         return None
 
 
-async def fetch():
+async def fetch(last_update: datetime.datetime | None = None):
     try:
         api_id = int(os.environ["PYVE_DOLLAR_TG_ID"])
         api_hash = os.environ["PYVE_DOLLAR_TG_HASH"]
@@ -98,10 +98,14 @@ async def fetch():
         if isinstance(channel, list):
             channel = channel[0]
 
-        msgs = client.iter_messages(channel, search="Bs.", reverse=False, wait_time=2)
+        msgs = client.iter_messages(
+            channel, search="Bs.", reverse=True, wait_time=2, offset_date=last_update
+        )
         texts = []
         async for msg in msgs:
             texts.append(msg.message)
+
+    eprint(f"Fetched {len(texts)} messages")
 
     rates = []
     for msg in texts:
@@ -115,11 +119,18 @@ async def fetch():
 
 
 def build_database():
-    rates = asyncio.run(fetch())
     db = get_database()
 
+    last_update = db.execute("SELECT value FROM RatesMeta WHERE key = 'last_update'")
+    try:
+        last_update_date = datetime.datetime.fromisoformat(last_update.fetchone()[0])
+    except IndexError:
+        last_update_date = None
+
+    rates = asyncio.run(fetch(last_update_date))
+
     db.executemany(
-        f"INSERT INTO rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
+        f"INSERT INTO Rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
         rates,
     )
     db.executemany(
