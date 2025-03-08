@@ -19,11 +19,17 @@ sqlite3.register_converter("datetime", convert_datetime)
 
 
 SCHEMA = """\
-CREATE TABLE IF NOT EXISTS rates (
-    time DATETIME NOT NULL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS Rates (
+    time DATETIME NOT NULL,
     source TEXT NOT NULL,
     rate INTEGER NOT NULL,
-    UNIQUE (time, source)
+    PRIMARY KEY (time, source)
+);
+CREATE TABLE IF NOT EXISTS RatesMeta (
+    source TEXT NOT NULL,
+    key TEXT NOT NULL,
+    value ANY,
+    PRIMARY KEY (source, key)
 );
 """
 

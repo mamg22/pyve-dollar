@@ -107,7 +107,11 @@ def build_database():
     db = get_database()
 
     db.executemany(
-        f"INSERT INTO rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
+        f"INSERT INTO Rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
         rates,
+    )
+    db.executemany(
+        f"INSERT INTO RatesMeta(source, key, value) VALUES ('{SOURCE_NAME}', ?, ?) ON CONFLICT (source, key) DO UPDATE SET value=value",
+        (("last_update", datetime.datetime.now()),),
     )
     db.commit()
