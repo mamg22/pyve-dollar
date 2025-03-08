@@ -121,11 +121,14 @@ async def fetch(last_update: datetime.datetime | None = None):
 def build_database():
     db = get_database()
 
-    last_update = db.execute("SELECT value FROM RatesMeta WHERE key = 'last_update'")
-    try:
-        last_update_date = datetime.datetime.fromisoformat(last_update.fetchone()[0])
-    except IndexError:
-        last_update_date = None
+    last_update = db.execute(
+        f"SELECT value FROM RatesMeta WHERE source = '{SOURCE_NAME}' AND key = 'last_update'"
+    )
+
+    date = last_update.fetchone()
+    last_update_date = (
+        datetime.datetime.fromisoformat(date[0]) if date is not None else date
+    )
 
     rates = asyncio.run(fetch(last_update_date))
 
