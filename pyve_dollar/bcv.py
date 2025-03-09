@@ -3,6 +3,8 @@ from urllib.parse import urljoin
 
 from lxml import html
 import requests
+import requests.adapters
+import urllib3
 import xlrd
 
 from .database import get_database
@@ -20,13 +22,13 @@ STATS_URL = "https://www.bcv.org.ve/estadisticas/tipo-cambio-de-referencia-smc"
 STATS_CACHE = PLATFORM_DIRS.user_cache_path / "stats"
 
 
-def fetch_stats_urls() -> list[str]:
+def fetch_stats_urls(session: requests.Session) -> list[str]:
     next_url = STATS_URL
 
     download_links = []
     while next_url:
         # TODO: Find out why it can't check the certificate
-        response = requests.get(str(next_url), verify=False)
+        response = session.get(str(next_url), verify=False)
         response.raise_for_status()
         document = html.fromstring(response.content)
         main_block = document.get_element_by_id("block-system-main")
@@ -50,7 +52,16 @@ def fetch_stats_urls() -> list[str]:
     return download_links
 
 
-def download_stats(urls: list[str]):
+def download_stats():
+    adapter = requests.adapters.HTTPAdapter(max_retries=10)
+    session = requests.Session()
+    session.mount("https://", adapter)
+
+    # FIXME: Remove once SSL verification has been fixed or viable solution fonud
+    urllib3.disable_warnings()
+
+    urls = fetch_stats_urls(session)
+
     for idx, url in enumerate(urls):
         filename = url.split("/")[-1]
         cache_path = STATS_CACHE / filename
@@ -62,7 +73,7 @@ def download_stats(urls: list[str]):
 
         try:
             eprint(f"Fetching {filename} from {url}")
-            response = requests.get(url, verify=False)
+            response = session.get(url, verify=False)
             response.raise_for_status()
         except requests.RequestException as err:
             eprint(f"Error fetching {url}:\n{err}")
@@ -74,8 +85,7 @@ def download_stats(urls: list[str]):
 def build_database():
     STATS_CACHE.mkdir(exist_ok=True)
     try:
-        urls = fetch_stats_urls()
-        download_stats(urls)
+        download_stats()
     except requests.ConnectionError:
         eprint("Failed to fetch current stats index, data might be outdated")
 
