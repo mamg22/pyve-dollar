@@ -14,6 +14,8 @@ from .common import (
 )
 from .database import get_database
 
+type RateData = tuple[datetime.datetime, int]
+
 SOURCE_NAME = "paralelo"
 
 SESSION_FILE = PLATFORM_DIRS.user_data_path / "paralelo.session"
@@ -60,7 +62,7 @@ def parse_value(value_str: str) -> int:
         return int(value_str[:-3].replace(".", "")) * 10000
 
 
-def parse_message(message: str) -> tuple[datetime.datetime, int] | None:
+def parse_message(message: str) -> RateData | None:
     message = re.sub(r"[^0-9BbSs/,\.:;% ]+", " ", message)
     if match := DATA_REGEX.search(message):
         date_str, time_str, value_str = match.groups()
@@ -78,9 +80,46 @@ def parse_message(message: str) -> tuple[datetime.datetime, int] | None:
         return None
 
 
+def fix_quirks(data: RateData) -> RateData:
+    """Apply corrections to certain wrong values in the source data"""
+    date, value = data
+
+    # Mistyped value
+    if date.date() == datetime.date(2024, 5, 29) and value == 411_1000:
+        value = 41_1000
+    # Wrong year and value
+    elif (
+        date == datetime.datetime(2024, 1, 3, 12, 45, tzinfo=VE_TZ) and value == 6_0800
+    ):
+        date = date.replace(year=2025)
+        value = 67_0800
+    # Wrong year 2024 -> 2025
+    elif (
+        datetime.date(2024, 1, 6) <= date.date() <= datetime.date(2024, 1, 8)
+        and 64_0000 <= value <= 70_0000
+    ):
+        date = date.replace(year=2025)
+    # Wrong year 2022 -> 2024
+    elif (
+        datetime.date(2022, 1, 5) <= date.date() <= datetime.date(2022, 1, 9)
+        and 20_0000 <= value <= 22_0000
+    ):
+        date = date.replace(year=2023)
+    # Missing digit in value
+    elif date == datetime.datetime(2021, 2, 16, 9, tzinfo=VE_TZ) and value == 1733:
+        value = 17330
+    elif date == datetime.datetime(2020, 7, 23, 13, tzinfo=VE_TZ) and value == 261:
+        value = 2610
+    # Parser failure?
+    elif date.date() == datetime.date(2020, 3, 13) and value == 0:
+        value = 775
+
+    return (date, value)
+
+
 async def fetch(
     last_fetched_id: int,
-) -> tuple[list[tuple[datetime.datetime, int]], int | None]:
+) -> tuple[list[RateData], int | None]:
     try:
         api_id = int(os.environ["PYVE_DOLLAR_TG_ID"])
         api_hash = os.environ["PYVE_DOLLAR_TG_HASH"]
@@ -121,10 +160,11 @@ async def fetch(
 
     eprint(f"Fetched {len(texts)} messages")
 
-    rates: list[tuple[datetime.datetime, int]] = []
+    rates: list[RateData] = []
     for msg in texts:
         data = parse_message(msg)
         if data is not None:
+            data = fix_quirks(data)
             rates.append(data)
         else:
             eprint(f"Unable to parse message `{msg[:100].replace("\n", "")}`")
