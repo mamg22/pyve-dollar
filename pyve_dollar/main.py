@@ -77,6 +77,17 @@ def interactive():
             )
 
 
+def clear_database():
+    db = get_database()
+
+    db.executescript("""
+    DELETE FROM Rates;
+    DELETE FROM RatesMeta;
+    """)
+
+    db.commit()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -85,11 +96,19 @@ def main():
         action="store_true",
         help="Build `rates.db` database file",
     )
+    parser.add_argument(
+        "-B",
+        "--rebuild-database",
+        action="store_true",
+        help="Rebuild `rates.db` database file, clearing all previous data",
+    )
     parser.add_argument("-p", "--show-plot", action="store_true", help="Show plot")
 
     args = parser.parse_args()
 
-    if args.build_database:
+    if args.build_database or args.rebuild_database:
+        if args.rebuild_database:
+            clear_database()
         bcv.build_database()
         paralelo.build_database()
     elif args.show_plot:
