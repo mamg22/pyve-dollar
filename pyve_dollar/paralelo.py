@@ -78,7 +78,9 @@ def parse_message(message: str) -> tuple[datetime.datetime, int] | None:
         return None
 
 
-async def fetch(last_update: datetime.datetime | None = None):
+async def fetch(
+    last_fetched_id: int,
+) -> tuple[list[tuple[datetime.datetime, int]], int | None]:
     try:
         api_id = int(os.environ["PYVE_DOLLAR_TG_ID"])
         api_hash = os.environ["PYVE_DOLLAR_TG_HASH"]
@@ -99,15 +101,27 @@ async def fetch(last_update: datetime.datetime | None = None):
             channel = channel[0]
 
         msgs = client.iter_messages(
-            channel, search="Bs.", reverse=True, wait_time=2, offset_date=last_update
+            channel,
+            search="Bs.",
+            reverse=True,
+            wait_time=2,
+            offset_id=last_fetched_id,
         )
-        texts = []
+
+        texts: list[str] = []
+        msg = None
         async for msg in msgs:
             texts.append(msg.message)
 
+        last_msg_id: int | None
+        if msg is not None:
+            last_msg_id = msg.id
+        else:
+            last_msg_id = None
+
     eprint(f"Fetched {len(texts)} messages")
 
-    rates = []
+    rates: list[tuple[datetime.datetime, int]] = []
     for msg in texts:
         data = parse_message(msg)
         if data is not None:
@@ -115,22 +129,21 @@ async def fetch(last_update: datetime.datetime | None = None):
         else:
             eprint(f"Unable to parse message `{msg[:100].replace("\n", "")}`")
 
-    return rates
+    return rates, last_msg_id
 
 
 def build_database():
     db = get_database()
 
-    last_update = db.execute(
-        f"SELECT value FROM RatesMeta WHERE source = '{SOURCE_NAME}' AND key = 'last_update'"
+    last_fetched_id = db.execute(
+        f"SELECT value FROM RatesMeta WHERE source = '{SOURCE_NAME}' AND key = 'last_fetched_id'"
     )
 
-    date = last_update.fetchone()
-    last_update_date = (
-        datetime.datetime.fromisoformat(date[0]) if date is not None else date
-    )
+    id_record = last_fetched_id.fetchone()
 
-    rates = asyncio.run(fetch(last_update_date))
+    last_id = id_record[0] if id_record is not None else 0
+
+    rates, new_last_id = asyncio.run(fetch(last_id))
 
     db.executemany(
         f"INSERT INTO Rates(time, source, rate) VALUES (?, '{SOURCE_NAME}', ?) ON CONFLICT (time, source) DO NOTHING",
@@ -138,7 +151,10 @@ def build_database():
     )
     db.executemany(
         f"INSERT INTO RatesMeta(source, key, value) VALUES ('{SOURCE_NAME}', ?, ?) ON CONFLICT (source, key) DO UPDATE SET value=value",
-        (("last_update", datetime.datetime.now()),),
+        (
+            ("last_update", datetime.datetime.now()),
+            ("last_fetched_id", new_last_id if new_last_id is not None else last_id),
+        ),
     )
 
     db.commit()
