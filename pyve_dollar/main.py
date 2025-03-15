@@ -90,19 +90,21 @@ def clear_database():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+    modes = parser.add_mutually_exclusive_group()
+
+    modes.add_argument(
         "-b",
         "--build-database",
         action="store_true",
         help="Build `rates.db` database file",
     )
-    parser.add_argument(
+    modes.add_argument(
         "-B",
         "--rebuild-database",
         action="store_true",
         help="Rebuild `rates.db` database file, clearing all previous data",
     )
-    parser.add_argument("-p", "--show-plot", action="store_true", help="Show plot")
+    modes.add_argument("-p", "--show-plot", action="store_true", help="Show plot")
 
     args = parser.parse_args()
 
