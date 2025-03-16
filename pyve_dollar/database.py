@@ -40,3 +40,14 @@ def get_database(**connect_options) -> sqlite3.Connection:
     db.executescript(SCHEMA)
 
     return db
+
+
+def clear_database():
+    db = get_database()
+
+    db.executescript("""
+    DELETE FROM Rates;
+    DELETE FROM RatesMeta;
+    """)
+
+    db.commit()

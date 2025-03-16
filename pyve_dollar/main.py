@@ -4,7 +4,7 @@ import sqlite3
 from dotenv import load_dotenv
 
 from pyve_dollar.common import VE_TZ
-from pyve_dollar.database import get_database
+from pyve_dollar.database import get_database, clear_database
 from . import bcv
 from . import paralelo
 
@@ -75,17 +75,6 @@ def interactive():
             print(
                 f"Value for ${val} based on {source} at {time} ({rate}):\tBs. {rate * val:.02f}"
             )
-
-
-def clear_database():
-    db = get_database()
-
-    db.executescript("""
-    DELETE FROM Rates;
-    DELETE FROM RatesMeta;
-    """)
-
-    db.commit()
 
 
 def main():
