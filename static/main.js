@@ -1,13 +1,14 @@
 const dollar = document.getElementById("USD");
 const bolivar = document.getElementById("VED");
 const date = document.getElementById("date");
+const source = document.getElementById("source");
 const currentRate = document.getElementById("current-rate");
 
 let rate = 0;
 
 async function fetchRate() {
     const params = new URLSearchParams();
-    params.append("source", "BCV");
+    params.append("source", source.value);
     params.append("value", 10000);
     if (date.value) {
         params.append("date", date.value);
@@ -50,6 +51,7 @@ function updateDisplayedRate() {
 dollar.addEventListener("input", updateFromUSD);
 bolivar.addEventListener("input", updateFromVED);
 date.addEventListener("change", fetchRate);
+source.addEventListener("change", fetchRate)
 
 document.addEventListener("rateUpdated", updateDisplayedRate);
 
