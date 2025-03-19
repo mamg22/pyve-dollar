@@ -1,0 +1,23 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+main {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5em;
+}
+
+main > label, main > output {
+    text-align: right;
+}
+
+input[type="number"] {
+    text-align: right;
+}
