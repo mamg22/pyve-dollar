@@ -6,3 +6,4 @@
 
 * Fetch VED->USD exchange rates from multiple sources: Official from Banco Central de Venezuela's (BCV), and unofficial from EnParaleloVzla's (paralelo).
 * Plotting rate changes over time.
+* Simple api and web UI
