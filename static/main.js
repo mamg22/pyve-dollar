@@ -44,7 +44,6 @@ function updateFromUSD() {
 }
 
 function updateDisplayedRate() {
-    console.log(rate)
     currentRate.innerText = `Bs. ${(rate / 10000).toFixed(4)}`;
 }
 
