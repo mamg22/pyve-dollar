@@ -17,7 +17,15 @@ function setInputState(enable) {
     }
 }
 
+let currentAbortController = null;
+
 async function fetchRate() {
+    if (currentAbortController !== null) {
+        currentAbortController.abort()
+    }
+
+    currentAbortController = new AbortController();
+
     const params = new URLSearchParams();
     params.append("source", source.value);
     params.append("value", 10000);
@@ -29,7 +37,7 @@ async function fetchRate() {
 
     try {
         setInputState(true);
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: currentAbortController.signal });
         if (!response.ok) {
             throw new Error(`Bad response status: ${response.status}`);
         }
