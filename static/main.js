@@ -33,7 +33,7 @@ async function fetchRate() {
         params.append("date", date.value);
     }
 
-    const url = document.location.origin + "/api/v1?" + params;
+    const url = document.location.origin + "/api/v1/?" + params;
 
     try {
         setInputState(true);
