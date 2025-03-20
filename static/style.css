@@ -21,3 +21,8 @@ main > label, main > output {
 input[type="number"] {
     text-align: right;
 }
+
+input[type="datetime-local"] {
+    font-family: sans-serif;
+    width: 16em;
+}
