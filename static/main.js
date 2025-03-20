@@ -26,7 +26,7 @@ async function fetchRate() {
 
         rate = value;
 
-        document.dispatchEvent(new CustomEvent("rateUpdated"))
+        document.dispatchEvent(new CustomEvent("rateUpdated"));
     }
     catch (err) {
         console.log(err.message);
@@ -50,8 +50,9 @@ function updateDisplayedRate() {
 dollar.addEventListener("input", updateFromUSD);
 bolivar.addEventListener("input", updateFromVED);
 date.addEventListener("change", fetchRate);
-source.addEventListener("change", fetchRate)
+source.addEventListener("change", fetchRate);
 
 document.addEventListener("rateUpdated", updateDisplayedRate);
+document.addEventListener("rateUpdated", updateFromUSD);
 
 fetchRate();
