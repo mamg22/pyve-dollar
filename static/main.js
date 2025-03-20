@@ -3,8 +3,19 @@ const bolivar = document.getElementById("VED");
 const date = document.getElementById("date");
 const source = document.getElementById("source");
 const currentRate = document.getElementById("current-rate");
+const main = document.getElementsByTagName("main")[0];
 
 let rate = 0;
+
+function setInputState(enable) {
+    const inputs = main.querySelectorAll("input, select");
+
+    for (const input of inputs) {
+        if (input.id != "date") {
+            input.disabled = enable;
+        }
+    }
+}
 
 async function fetchRate() {
     const params = new URLSearchParams();
@@ -17,6 +28,7 @@ async function fetchRate() {
     const url = document.location.origin + "/api/v1?" + params;
 
     try {
+        setInputState(true);
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Bad response status: ${response.status}`);
@@ -30,6 +42,9 @@ async function fetchRate() {
     }
     catch (err) {
         console.log(err.message);
+    }
+    finally {
+        setInputState(false);
     }
 }
 
